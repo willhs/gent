@@ -1,0 +1,13 @@
+local_configs:
+  claude: "CLAUDE.md"
+  codex: "AGENTS.md"
+  windsurf: ".windsurfrules"
+
+global_configs:
+  claude: "~/.claude/CLAUDE.md"
+  codex: "~/.codex/AGENTS.md"
+  windsurf: "~/.windsurf/rules.md"
+
+gent_dirs:
+  local: ".gent/rules.md"
+  global: "~/.config/gent/rules.md"
