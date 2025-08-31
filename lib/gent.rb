@@ -23,10 +23,14 @@ class Gent
     parse_args(args)
     
     case @command
+    when 'init'
+      init_all_agents
     when 'link'
       link_agent(@agent)
     when 'unlink'
       unlink_agent(@agent)
+    when 'list'
+      list_agents
     else
       show_help
     end
@@ -59,7 +63,20 @@ class Gent
     @global ? GLOBAL_AGENT_CONFIGS : LOCAL_AGENT_CONFIGS
   end
 
+  def resolve_alias(agent)
+    # Handle aliases
+    case agent
+    when 'claude'
+      'claude code'
+    else
+      agent
+    end
+  end
+
   def link_agent(agent)
+    # Handle aliases
+    agent = resolve_alias(agent)
+    
     unless agent_configs.key?(agent)
       puts "Unknown agent: #{agent}"
       puts "Available agents: #{agent_configs.keys.join(', ')}"
@@ -88,6 +105,12 @@ class Gent
         puts "Run 'gent unlink #{agent}#{@global ? ' --global' : ''}' first to remove it"
         return
       else
+        # If gent rules file is empty and agent config has content, copy it
+        if File.exist?(rules_file) && File.size(config_path) > 0 && File.size(rules_file) == 0
+          puts "Copying #{agent} config to central rules file..."
+          FileUtils.cp(config_path, rules_file)
+        end
+        
         FileUtils.mv(config_path, backup_path)
         puts "Backed up #{config_path} to #{backup_path}"
       end
@@ -102,6 +125,9 @@ class Gent
   end
 
   def unlink_agent(agent)
+    # Handle aliases
+    agent = resolve_alias(agent)
+    
     unless agent_configs.key?(agent)
       puts "Unknown agent: #{agent}"
       return
@@ -132,13 +158,43 @@ class Gent
     end
   end
 
+  def init_all_agents
+    puts "Linking all agents..."
+    agent_configs.keys.each do |agent|
+      puts "\n--- #{agent.capitalize} ---"
+      link_agent(agent)
+    end
+    puts "\nAll agents linked!"
+  end
+
+  def list_agents
+    puts "Supported agents:"
+    puts
+    agent_configs.each do |agent, path|
+      config_path = File.expand_path(path)
+      status = if File.exist?(config_path)
+        if File.symlink?(config_path)
+          target = File.readlink(config_path)
+          "linked -> #{target}"
+        else
+          "original file"
+        end
+      else
+        "not found"
+      end
+      puts "  #{agent.ljust(12)} #{path.ljust(30)} (#{status})"
+    end
+  end
+
   def show_help
     puts <<~HELP
       gent - Configuration management for AI development tools
 
       Usage:
+        gent init [--global]             Link all agents to central rules
         gent link <agent> [--global]     Link agent config to central rules
         gent unlink <agent> [--global]   Restore agent's original config
+        gent list [--global]             Show all supported agents and their status
 
       Agents:
         #{LOCAL_AGENT_CONFIGS.keys.join(', ')}

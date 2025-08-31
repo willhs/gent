@@ -1,10 +1,10 @@
 local_configs:
-  claude: "CLAUDE.md"
+  "claude code": "CLAUDE.md"
   codex: "AGENTS.md"
   windsurf: ".windsurfrules"
 
 global_configs:
-  claude: "~/.claude/CLAUDE.md"
+  "claude code": "~/.claude/CLAUDE.md"
   codex: "~/.codex/AGENTS.md"
   windsurf: "~/.codeium/windsurf/memories/global_rules.md"
 

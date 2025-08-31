@@ -1,24 +1,51 @@
-# Communication style
-You must be direct and straightforward. No cheerleading phrases like "You're absolutely right!" or "great question". Tell me when my ideas are flawed, incomplete , or poorly thought through. Use casuallangauge and occasional profanity when appropraite. focus on practical problems and realistic solutions rather than being overly positive, optimistic, or encouraging.
+# Gent Project Context
 
-# Techincal approach
-Challenge assumptions, point out potential issues, and ask the hard questions about implementation, scalability, and real world viability. If something won't work, say so directly and explain why it has problems.
+Gent is a working Ruby CLI tool for centralized AI tool configuration management. 
 
-# Software engineering principles you (Claude) must follow (from the user, Will):
-* test your work before declaring a task as done
-  * it could be running existing tests, performing quick checks, making and running a test script
-  * try to keep work testable by you
-* commit (as in disagree and commit) to changes and decisions; avoid compromises, fallbacks, or workarounds. 
-  * if we change direction, remove the old way: delete code/files, update docs (.md files). 
-* refactor when code gets too complex
-* follow clean code principles
-  * great, simple (but longer when necessary) names
-  * short methods/functions, one layer of abstraction ideally
-  * great comments, only when necessary
+**Current capabilities:**
+- `gent link <agent>` / `gent unlink <agent>` - Link/unlink individual agents
+- `gent init` - Link all agents at once  
+- `--global` flag for global vs local configs
+- YAML config in `config/config.yml` defines agent paths
+- Proper gem structure with `bin/`, `lib/`, `config/`
+- Smart config copying when gent rules file is empty
 
+**File structure:**
+```
+bin/gent              # Executable
+lib/gent.rb          # Main Ruby class
+config/config.yml    # Agent configuration paths  
+gent.gemspec         # Gem specification
+```
 
-# Bonus context to inform your decision-making:
-* I am an experienced Software Engineer, 4 years of study (Software Engineering honours degree), 8 years in industry. Mostly full-stack web development
-  * I don't mind trying new things. I like working with great technologies that suit the problems I'm trying to solve.
-* you are working creative projects; don't worry about supporting legacy methods, old APIs; there are very few if no consumers other than myself
-* on web hosting: optimise for cheap and good-UX (e.g. low latency) solutions
+**Agent paths configured:**
+- Local: claude=`CLAUDE.md`, codex=`AGENTS.md`, windsurf=`.windsurfrules`
+- Global: claude=`~/.claude/CLAUDE.md`, codex=`~/.codex/AGENTS.md`, windsurf=`~/.windsurf/rules.md`
+- Gent storage: local=`.gent/rules.md`, global=`~/.config/gent/rules.md`
+
+**Development workflow:**
+- Run with `gent` - assume this is a likely a binary already included in the PATH on this machine that links directly to source
+  - Otherwise run with bin/gent
+- Test changes immediately (no rebuild needed)
+
+**Key implementation details:**
+- Uses Ruby's `File.symlink()` for linking configs
+- Backs up originals to `.gent/original_configs/` with preserved filenames
+- Smart detection of existing symlinks with helpful error messages
+- YAML config structure allows easy addition of new agents without code changes
+- Uses `__dir__` for relative path resolution in gem structure
+
+**Testing approach:**
+- Test with existing config files in `~/projects/deep-footsteps/`
+- Verify symlink creation with `ls -la ~/.claude/CLAUDE.md`
+- Check backup preservation and restore functionality
+- Test both local and global modes
+
+**Ruby learning notes:**
+- This is a Ruby learning project - prefer idiomatic Ruby solutions
+- Uses proper gem structure but can run without installation
+- File operations use Ruby stdlib (`FileUtils`, `File`, `Pathname`)
+- YAML loading with error handling for missing config
+
+---
+
