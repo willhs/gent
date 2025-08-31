@@ -1,12 +1,10 @@
-#!/usr/bin/env ruby
-
 require 'fileutils'
 require 'pathname'
 require 'yaml'
 
 class Gent
   def self.load_config
-    config_file = File.join(__dir__, 'config.yml')
+    config_file = File.join(__dir__, '..', 'config', 'config.yml')
     YAML.load_file(config_file)
   rescue Errno::ENOENT
     puts "Error: config.yml not found"
@@ -155,6 +153,3 @@ class Gent
   end
 end
 
-if __FILE__ == $0
-  Gent.new.run(ARGV)
-end

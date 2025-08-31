@@ -6,7 +6,7 @@ local_configs:
 global_configs:
   claude: "~/.claude/CLAUDE.md"
   codex: "~/.codex/AGENTS.md"
-  windsurf: "~/.windsurf/rules.md"
+  windsurf: "~/.codeium/windsurf/memories/global_rules.md"
 
 gent_dirs:
   local: ".gent/rules.md"
