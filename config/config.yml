@@ -11,3 +11,10 @@ global_configs:
 gent_dirs:
   local: ".gent/rules.md"
   global: "~/.config/gent/rules.md"
+
+mcp_configs:
+  "claude code": "~/.claude.json"
+
+gent_mcp_dirs:
+  local: ".gent/mcp.yaml"
+  global: "~/.config/gent/mcp.yaml"
