@@ -1,6 +1,7 @@
 require 'yaml'
 require 'json'
 require 'fileutils'
+require 'toml-rb'
 
 module ConfigManager
     def self.load_main_config
@@ -33,6 +34,18 @@ module ConfigManager
     def self.save_yaml_config(path, config)
       FileUtils.mkdir_p(File.dirname(path))
       File.write(path, YAML.dump(config))
+    end
+
+    def self.load_toml_config(path)
+      return {} unless File.exist?(path)
+      TomlRB.load_file(path)
+    rescue => e
+      {}
+    end
+
+    def self.save_toml_config(path, config)
+      FileUtils.mkdir_p(File.dirname(path))
+      File.write(path, TomlRB.dump(config))
     end
 
     class PathResolver

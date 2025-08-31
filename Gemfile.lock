@@ -1,0 +1,24 @@
+PATH
+  remote: .
+  specs:
+    gent (0.1.0)
+      toml-rb (~> 2.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    citrus (3.0.2)
+    rake (13.3.0)
+    toml-rb (2.2.0)
+      citrus (~> 3.0, > 3.0)
+
+PLATFORMS
+  arm64-darwin-24
+  ruby
+
+DEPENDENCIES
+  gent!
+  rake
+
+BUNDLED WITH
+   2.5.3
