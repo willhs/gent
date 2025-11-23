@@ -14,7 +14,7 @@ module AgentManager
 
     def self.link(agent, path_resolver, mcp_configs, global: false)
       agent = resolve_alias(agent)
-      
+
       unless path_resolver.agent_configs.key?(agent)
         puts "Unknown agent: #{agent}"
         puts "Available agents: #{path_resolver.agent_configs.keys.join(', ')}"
@@ -31,6 +31,14 @@ module AgentManager
       # Create default rules file if it doesn't exist
       FileManager.touch_file(path_resolver.rules_file)
 
+      # Get agent-specific rules file (may be override or base)
+      agent_rules_file = path_resolver.rules_file_for_agent(agent)
+
+      # Create agent-specific override file if it doesn't exist (global mode only)
+      if global && agent_rules_file != path_resolver.rules_file
+        FileManager.touch_file(agent_rules_file)
+      end
+
       # Check for existing symlink
       if symlink_info = FileManager.check_existing_symlink(config_path)
         puts symlink_info[:message]
@@ -42,8 +50,8 @@ module AgentManager
       if File.exist?(config_path)
         # Copy agent config to rules if conditions are met
         FileManager.copy_if_conditions_met(
-          config_path, 
-          path_resolver.rules_file,
+          config_path,
+          agent_rules_file,
           {
             source_exists: true,
             target_exists: true,
@@ -51,7 +59,7 @@ module AgentManager
             target_is_empty: true
           }
         )
-        
+
         FileManager.backup_file(config_path, backup_path)
       end
 
@@ -60,8 +68,8 @@ module AgentManager
         MCPManager.backup_config(agent, mcp_configs, path_resolver.backup_dir)
       end
 
-      # Create symlink
-      FileManager.create_symlink(path_resolver.rules_file, config_path)
+      # Create symlink to agent-specific rules file
+      FileManager.create_symlink(agent_rules_file, config_path)
 
       # Handle MCP config if this agent supports it and we're in global mode
       if global
@@ -170,15 +178,15 @@ module AgentManager
     def self.sync_all(path_resolver, mcp_configs, global: false)
       puts "Syncing agent configs with gent rules..."
       synced_count = 0
-      
+
       path_resolver.agent_configs.keys.each do |agent|
         puts "\n--- #{agent.capitalize} ---"
         config_path = File.expand_path(path_resolver.agent_configs[agent])
-        
+
         if File.exist?(config_path) && File.symlink?(config_path)
           target = File.readlink(config_path)
-          expected_target = path_resolver.rules_file
-          
+          expected_target = path_resolver.rules_file_for_agent(agent)
+
           if target == expected_target
             puts "Already synced to #{expected_target}"
           else
@@ -186,18 +194,18 @@ module AgentManager
             FileManager.remove_symlink(config_path)
             FileManager.create_symlink(expected_target, config_path)
           end
-          
+
           # Sync MCP config if this agent supports it and we're in global mode
           if global
             MCPManager.sync_config(agent, mcp_configs, path_resolver)
           end
-          
+
           synced_count += 1
         else
           puts "Not linked - use 'gent link #{agent}' to link first"
         end
       end
-      
+
       puts "\n#{synced_count} agents synced successfully!"
       true
     end

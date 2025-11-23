@@ -59,6 +59,28 @@ module ConfigManager
         File.expand_path(path)
       end
 
+      # Get agent-specific rules file if it exists (global only), otherwise base rules file
+      def rules_file_for_agent(agent)
+        if @global
+          base_rules = rules_file
+          dir = File.dirname(base_rules)
+          ext = File.extname(base_rules)
+          basename = File.basename(base_rules, ext)
+
+          # Normalize agent name (e.g., "claude code" -> "claude")
+          agent_key = agent.gsub(/\s+/, '_').downcase.split('_').first
+          override_path = File.join(dir, "#{basename}.#{agent_key}#{ext}")
+
+          if File.exist?(override_path)
+            override_path
+          else
+            base_rules
+          end
+        else
+          rules_file
+        end
+      end
+
       def mcp_file
         path = @global ? @config['gent_mcp_dirs']['global'] : @config['gent_mcp_dirs']['local']
         File.expand_path(path)
