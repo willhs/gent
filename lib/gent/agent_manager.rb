@@ -166,4 +166,39 @@ module AgentManager
       puts "\n#{success_count} agents linked successfully!"
       true
     end
+
+    def self.sync_all(path_resolver, mcp_configs, global: false)
+      puts "Syncing agent configs with gent rules..."
+      synced_count = 0
+      
+      path_resolver.agent_configs.keys.each do |agent|
+        puts "\n--- #{agent.capitalize} ---"
+        config_path = File.expand_path(path_resolver.agent_configs[agent])
+        
+        if File.exist?(config_path) && File.symlink?(config_path)
+          target = File.readlink(config_path)
+          expected_target = path_resolver.rules_file
+          
+          if target == expected_target
+            puts "Already synced to #{expected_target}"
+          else
+            puts "Updating symlink target from #{target} to #{expected_target}"
+            FileManager.remove_symlink(config_path)
+            FileManager.create_symlink(expected_target, config_path)
+          end
+          
+          # Sync MCP config if this agent supports it and we're in global mode
+          if global
+            MCPManager.sync_config(agent, mcp_configs, path_resolver)
+          end
+          
+          synced_count += 1
+        else
+          puts "Not linked - use 'gent link #{agent}' to link first"
+        end
+      end
+      
+      puts "\n#{synced_count} agents synced successfully!"
+      true
+    end
 end

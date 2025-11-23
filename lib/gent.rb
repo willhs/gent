@@ -17,6 +17,8 @@ class Gent
     case @command
     when 'init'
       init_all_agents
+    when 'sync'
+      sync_all_agents
     when 'link'
       link_agent(@agent)
     when 'unlink'
@@ -54,6 +56,10 @@ class Gent
     AgentManager.init_all(path_resolver, MCP_CONFIGS, global: @global)
   end
 
+  def sync_all_agents
+    AgentManager.sync_all(path_resolver, MCP_CONFIGS, global: @global)
+  end
+
   def list_agents
     AgentManager.list(path_resolver, MCP_CONFIGS)
   end
@@ -64,6 +70,7 @@ class Gent
 
       Usage:
         gent init [--global]             Link all agents to central rules
+        gent sync [--global]             Sync linked agents with current gent config
         gent link <agent> [--global]     Link agent config to central rules
         gent unlink <agent> [--global]   Restore agent's original config
         gent list [--global]             Show all supported agents and their status
@@ -75,6 +82,8 @@ class Gent
         --global    Use global config (~/.config/gent) instead of local (.gent)
 
       Examples:
+        gent init
+        gent sync --global
         gent link claude
         gent unlink claude --global
     HELP
