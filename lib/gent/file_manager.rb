@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'pathname'
 
 module FileManager
     def self.create_directories(*paths)
@@ -39,8 +40,11 @@ module FileManager
 
     def self.create_symlink(source, target)
       FileUtils.mkdir_p(File.dirname(target))
-      File.symlink(File.expand_path(source), target)
-      puts "Linked #{target} -> #{source}"
+      source_path = Pathname.new(source).expand_path
+      target_path = Pathname.new(target).expand_path
+      relative_source = source_path.relative_path_from(target_path.dirname)
+      File.symlink(relative_source.to_s, target_path.to_s)
+      puts "Linked #{target} -> #{relative_source}"
     end
 
     def self.remove_symlink(path)

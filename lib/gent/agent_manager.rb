@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'pathname'
 require_relative 'file_manager'
 require_relative 'mcp_manager'
 
@@ -186,8 +187,10 @@ module AgentManager
         if File.exist?(config_path) && File.symlink?(config_path)
           target = File.readlink(config_path)
           expected_target = path_resolver.rules_file_for_agent(agent)
+          resolved_target = File.expand_path(target, File.dirname(config_path))
+          target_is_absolute = Pathname.new(target).absolute?
 
-          if target == expected_target
+          if resolved_target == expected_target && !target_is_absolute
             puts "Already synced to #{expected_target}"
           else
             puts "Updating symlink target from #{target} to #{expected_target}"
