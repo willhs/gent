@@ -19,3 +19,15 @@ mcp_configs:
 gent_mcp_dirs:
   local: ".gent/mcp.yaml"
   global: "~/.config/gent/mcp.yaml"
+
+skill_dirs:
+  local:
+    "claude code": ".claude/skills"
+    codex: ".codex/skills"
+  global:
+    "claude code": "~/.claude/skills"
+    codex: "~/.codex/skills"
+
+gent_skill_dirs:
+  local: ".gent/skills"
+  global: "~/.config/gent/skills"

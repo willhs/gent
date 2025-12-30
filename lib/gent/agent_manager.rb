@@ -2,6 +2,7 @@ require 'fileutils'
 require 'pathname'
 require_relative 'file_manager'
 require_relative 'mcp_manager'
+require_relative 'skills_manager'
 
 module AgentManager
     def self.resolve_alias(agent)
@@ -77,6 +78,8 @@ module AgentManager
         MCPManager.sync_config(agent, mcp_configs, path_resolver)
       end
 
+      SkillsManager.link(agent, path_resolver, global: global)
+
       true
     end
 
@@ -111,12 +114,15 @@ module AgentManager
         MCPManager.restore_config(agent, mcp_configs, path_resolver.backup_dir)
       end
 
+      SkillsManager.unlink(agent, path_resolver, global: global)
+
       true
     end
 
     def self.list(path_resolver, mcp_configs = {})
       puts "Supported agents:"
       puts
+      skill_dirs = path_resolver.agent_skill_dirs
 
       path_resolver.agent_configs.each do |agent, path|
         config_path = File.expand_path(path)
@@ -143,6 +149,22 @@ module AgentManager
           end
           puts "    MCP:       #{mcp_path.ljust(30)} (#{mcp_status})"
         end
+
+        if skill_dirs.key?(agent)
+          skill_path = skill_dirs[agent]
+          skill_full_path = File.expand_path(skill_path)
+          skill_status = if File.exist?(skill_full_path)
+            if File.symlink?(skill_full_path)
+              target = File.readlink(skill_full_path)
+              "linked -> #{target}"
+            else
+              "original directory"
+            end
+          else
+            "not found"
+          end
+          puts "    Skills:    #{skill_path.ljust(30)} (#{skill_status})"
+        end
       end
 
       # Show central MCP config if any agents have MCP support
@@ -158,6 +180,19 @@ module AgentManager
           "not found"
         end
         puts "  #{mcp_file.ljust(42)} (#{mcp_status})"
+      end
+
+      if !skill_dirs.empty?
+        puts
+        puts "Central skills directory:"
+        skills_dir = path_resolver.skills_dir
+        skills_status = if Dir.exist?(skills_dir)
+          skill_count = Dir.children(skills_dir).length
+          "#{skill_count} skill#{'s' if skill_count != 1}"
+        else
+          "not found"
+        end
+        puts "  #{skills_dir.ljust(42)} (#{skills_status})"
       end
     end
 
@@ -179,6 +214,7 @@ module AgentManager
     def self.sync_all(path_resolver, mcp_configs, global: false)
       puts "Syncing agent configs with gent rules..."
       synced_count = 0
+      SkillsManager.seed_central(path_resolver)
 
       path_resolver.agent_configs.keys.each do |agent|
         puts "\n--- #{agent.capitalize} ---"
@@ -207,6 +243,8 @@ module AgentManager
         else
           puts "Not linked - use 'gent link #{agent}' to link first"
         end
+
+        SkillsManager.sync(agent, path_resolver, global: global)
       end
 
       puts "\n#{synced_count} agents synced successfully!"

@@ -69,10 +69,10 @@ class Gent
       gent - Configuration management for AI development tools
 
       Usage:
-        gent init [--global]             Link all agents to central rules
-        gent sync [--global]             Sync linked agents with current gent config
-        gent link <agent> [--global]     Link agent config to central rules
-        gent unlink <agent> [--global]   Restore agent's original config
+        gent init [--global]             Link all agents (rules + skills + MCP where supported)
+        gent sync [--global]             Sync linked agents with current gent config and skills
+        gent link <agent> [--global]     Link agent config and skills to central rules
+        gent unlink <agent> [--global]   Restore agent's original config and skills
         gent list [--global]             Show all supported agents and their status
 
       Agents:

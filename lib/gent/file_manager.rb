@@ -20,6 +20,15 @@ module FileManager
       end
     end
 
+    def self.backup_directory(source_path, backup_path)
+      return unless Dir.exist?(source_path)
+
+      FileUtils.mkdir_p(File.dirname(backup_path))
+      FileUtils.mv(source_path, backup_path)
+      puts "Backed up #{source_path} to #{backup_path}"
+      true
+    end
+
     def self.copy_file(source_path, backup_path)
       return unless File.exist?(source_path)
       
@@ -30,6 +39,17 @@ module FileManager
 
     def self.restore_file(backup_path, target_path)
       if File.exist?(backup_path)
+        FileUtils.mv(backup_path, target_path)
+        puts "Restored #{backup_path} to #{target_path}"
+        true
+      else
+        false
+      end
+    end
+
+    def self.restore_directory(backup_path, target_path)
+      if Dir.exist?(backup_path)
+        FileUtils.mkdir_p(File.dirname(target_path))
         FileUtils.mv(backup_path, target_path)
         puts "Restored #{backup_path} to #{target_path}"
         true

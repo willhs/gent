@@ -14,6 +14,7 @@ Gent solves the problem of managing duplicate configuration files across multipl
 - **Global and project-level configs** - Support for both system-wide and project-specific rules
 - **Smart linking** - Safely backs up original configs before creating symlinks
 - **Multiple agent support** - Currently supports Claude Code, Codex, and Windsurf
+- **Shared skills directory** - Centralize Claude/Codex skills into a single source of truth
 - **Modular architecture** - Clean, extensible Ruby modules for easy maintenance
 
 ## Installation
@@ -53,7 +54,7 @@ Central MCP config:
 ## Usage
 
 ```bash
-# Link all agents to centralized config
+# Link all agents to centralized config (rules + skills)
 gent init
 
 # Link specific agent (text configs + MCP servers)  
@@ -68,7 +69,7 @@ gent unlink claude
 gent init --global
 gent link claude --global
 
-# View current linking status and MCP sync info
+# View current linking status, MCP sync info, and skills status
 gent list
 gent list --global
 ```
@@ -100,6 +101,19 @@ mcp_configs:
 gent_mcp_dirs:
   local: ".gent/mcp.yaml"
   global: "~/.config/gent/mcp.yaml"
+
+# Skills directory sharing
+skill_dirs:
+  local:
+    "claude code": ".claude/skills"
+    codex: ".codex/skills"
+  global:
+    "claude code": "~/.claude/skills"
+    codex: "~/.codex/skills"
+
+gent_skill_dirs:
+  local: ".gent/skills"
+  global: "~/.config/gent/skills"
 ```
 
 ## How it Works
@@ -114,6 +128,11 @@ gent_mcp_dirs:
 2. **Centralize**: All agents' MCP configs point to the same centralized server definitions
 3. **Format Preservation**: JSON (Claude) and TOML (Codex) formats are maintained
 4. **Restore**: Original MCP configs are restored when unlinking
+
+### Skills Directory Sharing
+1. **Seed**: If the central skills directory is empty, gent copies existing Claude skills into it
+2. **Link**: Agent skill directories are replaced with symlinks to the central skills directory
+3. **Restore**: Original skill directories are restored when unlinking
 
 ## MCP Server Formats
 
@@ -160,4 +179,3 @@ lib/
 config/config.yml     # Agent and MCP configuration paths
 gent.gemspec         # Gem specification with dependencies
 ```
-

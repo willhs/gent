@@ -86,6 +86,11 @@ module ConfigManager
         File.expand_path(path)
       end
 
+      def skills_dir
+        path = @global ? @config['gent_skill_dirs']['global'] : @config['gent_skill_dirs']['local']
+        File.expand_path(path)
+      end
+
       def gent_dir
         File.dirname(rules_file)
       end
@@ -96,6 +101,12 @@ module ConfigManager
 
       def agent_configs
         @global ? @config['global_configs'] : @config['local_configs']
+      end
+
+      def agent_skill_dirs
+        skill_dirs = @config['skill_dirs'] || {}
+        scope = @global ? 'global' : 'local'
+        skill_dirs[scope] || {}
       end
     end
 end
