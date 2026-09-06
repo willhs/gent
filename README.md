@@ -9,12 +9,12 @@ Gent solves the problem of managing duplicate configuration files across multipl
 ## Features
 
 - **Centralized config management** - One config file, linked to multiple agents
-- **MCP server synchronization** - Manage MCP (Model Context Protocol) servers centrally
+- **MCP server synchronization** - Manage shared and agent-specific MCP (Model Context Protocol) servers
 - **Multi-format support** - Handles JSON (Claude), TOML (Codex), and Markdown configs
 - **Global and project-level configs** - Support for both system-wide and project-specific rules
 - **Smart linking** - Safely backs up original configs before creating symlinks
-- **Multiple agent support** - Currently supports Claude Code, Codex, and Windsurf
-- **Shared skills directory** - Centralize Claude/Codex skills into a single source of truth
+- **Multiple agent support** - Currently supports Claude Code, Codex, Windsurf, and Pi
+- **Shared skills directory** - Centralize Claude/Codex/Pi skills into a single source of truth
 - **Modular architecture** - Clean, extensible Ruby modules for easy maintenance
 
 ## Installation
@@ -44,11 +44,15 @@ Supported agents:
   claude code  ~/.claude/CLAUDE.md            (linked -> /Users/you/.config/gent/rules.md)
     MCP:       ~/.claude.json                 (synced -> /Users/you/.config/gent/mcp.yaml)
   codex        ~/.codex/AGENTS.md             (linked -> /Users/you/.config/gent/rules.md)
-    MCP:       ~/.codex/config.toml           (synced -> /Users/you/.config/gent/mcp.yaml)
+    MCP:       ~/.codex/config.toml           (synced -> /Users/you/.config/gent/mcp.yaml, /Users/you/.config/gent/mcp.codex.yaml)
   windsurf     ~/.codeium/windsurf/memories/global_rules.md (linked -> /Users/you/.config/gent/rules.md)
+  pi           ~/.pi/agent/AGENTS.md          (linked -> /Users/you/.config/gent/rules.md)
+    MCP:       ~/.pi/agent/mcp.json           (synced -> /Users/you/.config/gent/mcp.yaml)
+    Skills:    ~/.pi/agent/skills             (linked -> /Users/you/.config/gent/skills)
 
-Central MCP config:
+Gent MCP configs:
   /Users/you/.config/gent/mcp.yaml          (2 MCP servers)
+  /Users/you/.config/gent/mcp.codex.yaml    (1 MCP server)
 ```
 
 ## Usage
@@ -61,6 +65,7 @@ gent init
 gent link claude
 gent link codex
 gent link windsurf
+gent link pi
 
 # Unlink specific agent (restores originals)
 gent unlink claude
@@ -83,11 +88,13 @@ local_configs:
   "claude code": "CLAUDE.md"
   codex: "AGENTS.md"
   windsurf: ".windsurfrules"
+  pi: "AGENTS.md"
 
 global_configs:
   "claude code": "~/.claude/CLAUDE.md"
   codex: "~/.codex/AGENTS.md"
   windsurf: "~/.codeium/windsurf/memories/global_rules.md"
+  pi: "~/.pi/agent/AGENTS.md"
 
 gent_dirs:
   local: ".gent/rules.md"
@@ -97,6 +104,7 @@ gent_dirs:
 mcp_configs:
   "claude code": "~/.claude.json"
   codex: "~/.codex/config.toml"
+  pi: "~/.pi/agent/mcp.json"
 
 gent_mcp_dirs:
   local: ".gent/mcp.yaml"
@@ -107,9 +115,11 @@ skill_dirs:
   local:
     "claude code": ".claude/skills"
     codex: ".codex/skills"
+    pi: ".pi/skills"
   global:
     "claude code": "~/.claude/skills"
     codex: "~/.codex/skills"
+    pi: "~/.pi/agent/skills"
 
 gent_skill_dirs:
   local: ".gent/skills"
@@ -119,15 +129,16 @@ gent_skill_dirs:
 ## How it Works
 
 ### Text Config Management
-1. **Backup**: Original agent configs are safely backed up to `.gent/original_configs/`
+1. **Backup**: Original agent configs are safely backed up to `original_configs/<agent>/`
 2. **Link**: Agent config files are replaced with symlinks to your centralized gent config
 3. **Sync**: All linked agents automatically use the same rules and settings
 
 ### MCP Server Management
-1. **Extract**: MCP servers from agent configs are copied to central `mcp.yaml` (if central is empty)
-2. **Centralize**: All agents' MCP configs point to the same centralized server definitions
-3. **Format Preservation**: JSON (Claude) and TOML (Codex) formats are maintained
-4. **Restore**: Original MCP configs are restored when unlinking
+1. **Extract**: MCP servers from agent configs are copied to the active gent MCP file if gent has no MCP config yet
+2. **Share**: Servers in `mcp.yaml` are synced to every MCP-capable agent
+3. **Specialize**: Optional files such as `mcp.codex.yaml` or `mcp.claude.yaml` are merged into only that agent's MCP config
+4. **Format Preservation**: JSON (Claude) and TOML (Codex) formats are maintained
+5. **Restore**: Original MCP configs are restored when unlinking
 
 ### Skills Directory Sharing
 1. **Seed**: If the central skills directory is empty, gent copies existing Claude skills into it
@@ -157,12 +168,31 @@ args = ["/path/to/server.js"]
 type = "stdio"
 ```
 
-**Central (YAML)**: `~/.config/gent/mcp.yaml`
+**Pi (JSON)**: `~/.pi/agent/mcp.json`
+```json
+{
+  "mcpServers": {
+    "puppeteer": {
+      "command": "node",
+      "args": ["/path/to/server.js"]
+    }
+  }
+}
+```
+
+**Shared (YAML)**: `~/.config/gent/mcp.yaml`
 ```yaml
 puppeteer:
   type: stdio
   command: node
   args: ["/path/to/server.js"]
+```
+
+**Agent-specific (YAML)**: `~/.config/gent/mcp.codex.yaml`
+```yaml
+project-tools:
+  command: python
+  args: ["/path/to/codex-only-server.py"]
 ```
 
 ## Project Structure

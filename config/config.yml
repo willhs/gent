@@ -2,11 +2,13 @@ local_configs:
   "claude code": "CLAUDE.md"
   codex: "AGENTS.md"
   windsurf: ".windsurfrules"
+  pi: "AGENTS.md"
 
 global_configs:
   "claude code": "~/.claude/CLAUDE.md"
   codex: "~/.codex/AGENTS.md"
   windsurf: "~/.codeium/windsurf/memories/global_rules.md"
+  pi: "~/.pi/agent/AGENTS.md"
 
 gent_dirs:
   local: ".gent/rules.md"
@@ -15,6 +17,7 @@ gent_dirs:
 mcp_configs:
   "claude code": "~/.claude.json"
   codex: "~/.codex/config.toml"
+  pi: "~/.pi/agent/mcp.json"
 
 gent_mcp_dirs:
   local: ".gent/mcp.yaml"
@@ -24,9 +27,11 @@ skill_dirs:
   local:
     "claude code": ".claude/skills"
     codex: ".codex/skills"
+    pi: ".pi/skills"
   global:
     "claude code": "~/.claude/skills"
     codex: "~/.codex/skills"
+    pi: "~/.pi/agent/skills"
 
 gent_skill_dirs:
   local: ".gent/skills"

@@ -8,7 +8,6 @@ module SkillsManager
 
       central_dir = path_resolver.skills_dir
       agent_dir = File.expand_path(agent_skill_dirs[agent])
-      backup_dir = File.join(path_resolver.backup_dir, 'skills', normalize_agent(agent))
 
       FileUtils.mkdir_p(central_dir)
       seed_central_from_agent(agent_dir, central_dir, agent)
@@ -20,7 +19,8 @@ module SkillsManager
       end
 
       if Dir.exist?(agent_dir)
-        FileManager.backup_directory(agent_dir, backup_dir)
+        agent_backup_dir = File.join(path_resolver.backup_dir, 'skills', normalize_agent(agent))
+        FileManager.backup_directory(agent_dir, agent_backup_dir)
       end
 
       FileManager.create_symlink(central_dir, agent_dir)
@@ -36,6 +36,12 @@ module SkillsManager
       backup_dir = File.join(path_resolver.backup_dir, 'skills', normalize_agent(agent))
 
       FileManager.remove_symlink(agent_dir)
+
+      # A real directory was never linked - leave the original as is
+      if Dir.exist?(agent_dir) && !File.symlink?(agent_dir)
+        puts "Skills directory #{agent_dir} is not linked - leaving it as is"
+        return true
+      end
 
       unless FileManager.restore_directory(backup_dir, agent_dir)
         if Dir.exist?(central_dir)
@@ -92,11 +98,8 @@ module SkillsManager
           FileManager.create_symlink(central_dir, agent_dir)
         end
       else
-        if Dir.exist?(agent_dir)
-          FileManager.backup_directory(agent_dir, backup_dir)
-        end
-
-        FileManager.create_symlink(central_dir, agent_dir)
+        puts "Skills not linked - use 'gent link #{agent}#{global ? ' --global' : ''}' to link first"
+        return false
       end
 
       true

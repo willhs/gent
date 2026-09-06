@@ -24,8 +24,9 @@ module FileManager
       return unless Dir.exist?(source_path)
 
       FileUtils.mkdir_p(File.dirname(backup_path))
-      FileUtils.mv(source_path, backup_path)
-      puts "Backed up #{source_path} to #{backup_path}"
+      destination = unique_backup_path(backup_path)
+      FileUtils.mv(source_path, destination)
+      puts "Backed up #{source_path} to #{destination}"
       true
     end
 
@@ -108,5 +109,20 @@ module FileManager
         FileUtils.touch(path)
         puts "Created #{path}"
       end
+    end
+
+    def self.unique_backup_path(path)
+      return path unless File.exist?(path)
+
+      timestamp = Time.now.strftime('%Y%m%d-%H%M%S')
+      candidate = "#{path}.#{timestamp}"
+      suffix = 1
+
+      while File.exist?(candidate)
+        candidate = "#{path}.#{timestamp}.#{suffix}"
+        suffix += 1
+      end
+
+      candidate
     end
 end

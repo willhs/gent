@@ -48,6 +48,11 @@ module ConfigManager
       File.write(path, TomlRB.dump(config))
     end
 
+    # Normalized agent name for per-agent directories (e.g. 'claude code' -> 'claude_code')
+    def self.agent_key(agent)
+      agent.to_s.downcase.gsub(/\s+/, '_')
+    end
+
     class PathResolver
       def initialize(config, global: false)
         @config = config
@@ -67,9 +72,7 @@ module ConfigManager
           ext = File.extname(base_rules)
           basename = File.basename(base_rules, ext)
 
-          # Normalize agent name (e.g., "claude code" -> "claude")
-          agent_key = agent.gsub(/\s+/, '_').downcase.split('_').first
-          override_path = File.join(dir, "#{basename}.#{agent_key}#{ext}")
+          override_path = File.join(dir, "#{basename}.#{agent_key(agent)}#{ext}")
 
           if File.exist?(override_path)
             override_path
@@ -84,6 +87,32 @@ module ConfigManager
       def mcp_file
         path = @global ? @config['gent_mcp_dirs']['global'] : @config['gent_mcp_dirs']['local']
         File.expand_path(path)
+      end
+
+      def mcp_file_for_agent(agent)
+        agent_file = agent_specific_mcp_file(agent)
+        File.exist?(agent_file) ? agent_file : mcp_file
+      end
+
+      def mcp_files_for_agent(agent)
+        files = [mcp_file]
+        agent_file = agent_specific_mcp_file(agent)
+        files << agent_file if File.exist?(agent_file)
+        files
+      end
+
+      def mcp_config_for_agent(agent)
+        mcp_files_for_agent(agent).each_with_object({}) do |file, config|
+          config.merge!(ConfigManager.load_yaml_config(file))
+        end
+      end
+
+      def agent_specific_mcp_file(agent)
+        base_mcp = mcp_file
+        dir = File.dirname(base_mcp)
+        ext = File.extname(base_mcp)
+        basename = File.basename(base_mcp, ext)
+        File.join(dir, "#{basename}.#{agent_key(agent)}#{ext}")
       end
 
       def skills_dir
@@ -107,6 +136,12 @@ module ConfigManager
         skill_dirs = @config['skill_dirs'] || {}
         scope = @global ? 'global' : 'local'
         skill_dirs[scope] || {}
+      end
+
+      private
+
+      def agent_key(agent)
+        agent.gsub(/\s+/, '_').downcase.split('_').first
       end
     end
 end

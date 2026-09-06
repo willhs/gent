@@ -25,7 +25,7 @@ module AgentManager
 
       config_path = File.expand_path(path_resolver.agent_configs[agent])
       original_filename = File.basename(path_resolver.agent_configs[agent])
-      backup_path = File.join(path_resolver.backup_dir, original_filename)
+      backup_path = File.join(path_resolver.backup_dir, ConfigManager.agent_key(agent), original_filename)
 
       # Create directories
       FileManager.create_directories(path_resolver.gent_dir, path_resolver.backup_dir)
@@ -93,7 +93,7 @@ module AgentManager
 
       config_path = File.expand_path(path_resolver.agent_configs[agent])
       original_filename = File.basename(path_resolver.agent_configs[agent])
-      backup_path = File.join(path_resolver.backup_dir, original_filename)
+      backup_path = File.join(path_resolver.backup_dir, ConfigManager.agent_key(agent), original_filename)
 
       # Remove symlink if it exists
       FileManager.remove_symlink(config_path)
@@ -143,7 +143,8 @@ module AgentManager
           mcp_path = mcp_configs[agent]
           mcp_full_path = File.expand_path(mcp_path)
           mcp_status = if File.exist?(mcp_full_path)
-            "synced -> #{path_resolver.mcp_file}"
+            source_files = path_resolver.mcp_files_for_agent(agent).join(', ')
+            "synced -> #{source_files}"
           else
             "not found"
           end
@@ -167,19 +168,26 @@ module AgentManager
         end
       end
 
-      # Show central MCP config if any agents have MCP support
+      # Show gent MCP config files if any agents have MCP support
       if !mcp_configs.empty?
         puts
-        puts "Central MCP config:"
-        mcp_file = path_resolver.mcp_file
-        mcp_status = if File.exist?(mcp_file)
-          central_mcp = ConfigManager.load_yaml_config(mcp_file)
-          server_count = central_mcp.keys.length
-          "#{server_count} MCP server#{'s' if server_count != 1}"
-        else
-          "not found"
+        puts "Gent MCP configs:"
+        mcp_files = [path_resolver.mcp_file]
+        mcp_configs.keys.each do |agent|
+          agent_mcp_file = path_resolver.agent_specific_mcp_file(agent)
+          mcp_files << agent_mcp_file if File.exist?(agent_mcp_file)
         end
-        puts "  #{mcp_file.ljust(42)} (#{mcp_status})"
+
+        mcp_files.uniq.each do |mcp_file|
+          mcp_status = if File.exist?(mcp_file)
+            mcp_config = ConfigManager.load_yaml_config(mcp_file)
+            server_count = mcp_config.keys.length
+            "#{server_count} MCP server#{'s' if server_count != 1}"
+          else
+            "not found"
+          end
+          puts "  #{mcp_file.ljust(42)} (#{mcp_status})"
+        end
       end
 
       if !skill_dirs.empty?

@@ -1,1 +1,1 @@
-/Users/will/projects/gent/.gent/rules.md
+.gent/rules.md

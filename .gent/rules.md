@@ -19,8 +19,10 @@ gent.gemspec         # Gem specification
 ```
 
 **Agent paths configured:**
-- Local: claude=`CLAUDE.md`, codex=`AGENTS.md`, windsurf=`.windsurfrules`
-- Global: claude=`~/.claude/CLAUDE.md`, codex=`~/.codex/AGENTS.md`, windsurf=`~/.windsurf/rules.md`
+- Local: claude=`CLAUDE.md`, codex=`AGENTS.md`, windsurf=`.windsurfrules`, pi=`AGENTS.md`
+- Global: claude=`~/.claude/CLAUDE.md`, codex=`~/.codex/AGENTS.md`, windsurf=`~/.codeium/windsurf/memories/global_rules.md`, pi=`~/.pi/agent/AGENTS.md`
+- MCP: claude=`~/.claude.json`, codex=`~/.codex/config.toml`, pi=`~/.pi/agent/mcp.json`
+- Skills (global): claude=`~/.claude/skills`, codex=`~/.codex/skills`, pi=`~/.pi/agent/skills`
 - Gent storage: local=`.gent/rules.md`, global=`~/.config/gent/rules.md`
 
 **Development workflow:**
@@ -30,7 +32,7 @@ gent.gemspec         # Gem specification
 
 **Key implementation details:**
 - Uses Ruby's `File.symlink()` for linking configs
-- Backs up originals to `.gent/original_configs/` with preserved filenames
+- Backs up originals to `original_configs/<agent>/` (agent-scoped subdirs, since filenames like AGENTS.md can collide across agents)
 - Smart detection of existing symlinks with helpful error messages
 - YAML config structure allows easy addition of new agents without code changes
 - Uses `__dir__` for relative path resolution in gem structure
