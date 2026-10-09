@@ -85,7 +85,7 @@ Agent paths and MCP configs are defined in `config/config.yml`:
 
 ```yaml
 local_configs:
-  "claude code": "CLAUDE.md"
+  "claude code": "AGENTS.md"
   codex: "AGENTS.md"
   windsurf: ".windsurfrules"
   pi: "AGENTS.md"
